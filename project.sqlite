@@ -1,0 +1,174 @@
+SELECT *
+ FROM survey
+ LIMIT 10;
+SELECT COUNT(DISTINCT user_id) FROM survey; 
+
+ /* The table has the question, user ID, and response. */
+
+SELECT 
+question,
+COUNT(DISTINCT user_id) AS nb_responses
+FROM survey
+GROUP BY question;
+
+/* The query output shows us that:
+- 500 people started the survey (i.e., responded to question 1).
+- 475 people responded to question 2.
+- 380 people responded to question 3.
+- 361 people responded to question 4.
+- 270 people responded to question 5.
+
+There is a significant drop in number of responses when we look at question 5. This could be justified by the fact that not many people remember when their last eye exam was. Therefore, they would give up and not respond. */
+
+/* Using Excel, we found that the last question has the lowest completion rate of around 75%. This might be because there are many people who have never done an eye exam or do not remember when their last eye exam was. The third question also has a relatively low response rate of 80%. This can be because respondents did not know what to answer and did not understand the question. 
+
+The other questions have high response rates of at least 95%. Questions on what they are looking for, their fit, and their favorite color could be easier to answer for a general audience. */
+
+SELECT *
+FROM quiz
+LIMIT 5;
+
+SELECT * 
+FROM home_try_on
+LIMIT 5;
+
+SELECT * 
+FROM purchase
+LIMIT 5; 
+
+WITH CTE AS (
+
+SELECT DISTINCT q.user_id,
+h.user_id IS NOT NULL AS is_home_try_on,
+h.number_of_pairs,
+p.user_id IS NOT NULL AS is_purchase
+FROM quiz q
+LEFT JOIN home_try_on h
+ON q.user_id = h.user_id
+LEFT JOIN purchase p
+ON p.user_id = h.user_id
+)
+
+SELECT * FROM CTE
+LIMIT 5; 
+
+/* To find the overall conversion rate for the home try on and purchase phases, we sum the respective columns 
+and divide by the total number of users*/
+
+SELECT
+COUNT(*) AS total_users,
+100.0*SUM(is_home_try_on)/COUNT(*) AS perc_home_try_on,
+100.0*SUM(is_purchase)/COUNT(*) AS perc_purchase
+FROM CTE 
+
+/* The output shows that 75% of the people who took the quiz had a home try on while 49.5% of them made a purchase. 
+
+/* To compare conversions from quiz to home try on and home try on to purchase */
+
+SELECT 
+100.0*SUM(is_home_try_on)/COUNT(*) AS quiz_to_home_try,
+100.0*SUM(is_purchase)/SUM(is_home_try_on) AS home_try_on_to_purchase
+FROM CTE; 
+
+/* The output shows that, as mentioned earlier, 75% of the people who took the quiz had a home try on. Also, 66% of those who had a home try on proceeded to make a purchase. 
+
+/* To find the difference in purchase rates between those who had 3 pairs vs 5 pairs as home try on */
+
+SELECT
+100.0*SUM(CASE WHEN number_of_pairs = '3 pairs' THEN is_purchase END)/SUM(CASE WHEN number_of_pairs = '3 pairs' THEN is_home_try_on END) AS '3_total_conversion_rate',
+
+100.0*SUM(CASE WHEN number_of_pairs = '5 pairs' THEN is_purchase END)/SUM(CASE WHEN number_of_pairs = '5 pairs' THEN is_home_try_on END) AS '5_total_conversion_rate' 
+FROM CTE; 
+
+/* Below is just a validity check */
+
+SELECT 
+SUM(CASE WHEN number_of_pairs = '5 pairs' THEN is_home_try_on END) AS '5_total',
+SUM(CASE WHEN number_of_pairs = '5 pairs' THEN is_purchase END) AS '5_purchases',
+
+SUM(CASE WHEN number_of_pairs = '3 pairs' THEN is_home_try_on END) AS '3_total',
+SUM(CASE WHEN number_of_pairs = '3 pairs' THEN is_purchase END) AS '3_purchases'
+FROM CTE; 
+
+/* The results show that 79% of the people who had 5 pairs to try on at home ended up making a purchase while 53% of those who had 3 pairs ended up making a purchase. The conversion rate is significantly higher when people try out more pairs at home. */
+
+SELECT * 
+FROM CTE
+LIMIT 5; 
+
+/* To examine the most common results of the style quiz */
+
+SELECT * 
+FROM quiz
+LIMIT 10; 
+
+SELECT 
+style,
+COUNT(*) AS nb_responses
+FROM quiz 
+GROUP BY style; 
+
+/* We can see that almost 100 people (10% of the respondents) did not provide a response to this question. However, the split between Women's and Men's style is almost equal indicating that the gender split is highly even and that the brand fits both genders. */
+
+SELECT 
+fit,
+COUNT(*) AS nb_responses
+FROM quiz
+GROUP BY fit; 
+
+/* We can see that 89 respondents did not provide an answer to this question. Narrow Fit is the most popular one for those who did provide an answer while Medium fit is the second most popular. Wide fit is the least popular. */
+
+SELECT
+shape, 
+COUNT(*) AS nb_responses
+FROM quiz
+GROUP BY shape; 
+
+/* We can see that almost 10% of the respondents do not have a preference for shape. The most preferred shape is rectangular while Square is also relatively popular. Round shape is the least popular among the respondents. */
+
+SELECT 
+color,
+COUNT(*) AS nb_responses
+FROM quiz
+GROUP BY color;
+
+/* Tortoise, Black, and Crusyal are the three most popular colors, respectively. Two-tone is not very popular while around 11% of respondents have no specific preference. */
+
+/* Now we will look at the most popular styles, model names, and colors purchased */
+
+SELECT 
+style,
+model_name,
+color,
+COUNT(*) AS nb_purchases
+FROM purchase
+GROUP BY 1,2,3;
+
+SELECT 
+model_name,
+COUNT(*) AS nb_purchases
+FROM purchase
+GROUP BY 1;
+
+SELECT 
+color,
+COUNT(*) AS nb_purchases
+FROM purchase
+GROUP BY 1;
+
+/* The results show that the Men Style Dawes model with Driftwood Fade color is the most popular. The Brady model with Layered Tortoise Matte is also popular. */
+
+/* The results also show that the Women Style Eugene Narrow model with Rosewood Tortoise color is the most popular among women whole the same model with a Rose Crystal color is also relatively popular. Besides, the Olive model witha Pearled Tortoise color has a comparable popularity. */ 
+
+
+
+
+
+
+
+
+
+
+
+
+
